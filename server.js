@@ -1,43 +1,46 @@
-// server.js
 const express = require("express");
 const cors = require("cors");
-const dotenv = require("dotenv");
-const { v4: uuidv4 } = require("uuid"); // Make sure you installed uuid
+const { v4: uuidv4 } = require("uuid");
+const path = require("path");
+
 const app = express();
 
-dotenv.config();
 app.use(cors());
 app.use(express.json());
-app.use(express.static("public"));
 
-// Store connected plugins
-let connectedUsers = {}; // { userId: true }
+// Serve static frontend
+app.use(express.static(path.join(__dirname, "public")));
+
+// Plugin connection endpoint
+let connectedPlugins = {};
 
 app.post("/connect-plugin", (req, res) => {
     const userId = uuidv4();
-    connectedUsers[userId] = true;
-
+    connectedPlugins[userId] = true;
+    console.log(`[Hez AI] Plugin connected: ${userId}`);
     res.json({
         userId,
         message: "✅ Plugin connected successfully"
     });
 });
 
+// Audit log endpoint
 app.post("/send-message", (req, res) => {
     const { userId, message } = req.body;
-
-    if (!connectedUsers[userId]) {
+    if (!connectedPlugins[userId]) {
         return res.json({ error: "Plugin not connected" });
     }
-
-    console.log(`[Hez AI] User ${userId} request: ${message}`);
-
-    // Return audit log confirmation
-    res.json({
-        answer: `✅ Received request: "${message}" and sent to Roblox plugin`
-    });
+    console.log(`[Hez AI] Audit log from ${userId}: ${message}`);
+    res.json({ answer: `✅ Plugin processed request: "${message}"` });
 });
 
-app.listen(3000, () => {
-    console.log("✅ Hez AI server running at http://localhost:3000");
+// Serve index.html on root
+app.get("/", (req, res) => {
+    res.sendFile(path.join(__dirname, "public", "index.html"));
 });
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`✅ Hez AI server running on port ${PORT}`);
+});
+
