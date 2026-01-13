@@ -8,15 +8,13 @@ app.use(express.static(__dirname));
 let state = {
   pluginConnected: false,
   permissionsGranted: false,
-  queue: [] // actions for plugin
+  queue: []
 };
 
-// Serve site
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
 });
 
-// Plugin connects
 app.post("/plugin/connect", (req, res) => {
   state.pluginConnected = true;
   state.permissionsGranted = false;
@@ -24,32 +22,25 @@ app.post("/plugin/connect", (req, res) => {
   res.json({ success: true });
 });
 
-// Website checks status
 app.get("/plugin/status", (req, res) => {
-  res.json({
-    connected: state.pluginConnected,
-    permissionsGranted: state.permissionsGranted
-  });
+  res.json(state);
 });
 
-// User grants permission
 app.post("/plugin/permissions", (req, res) => {
   state.permissionsGranted = true;
   console.log("Permissions granted");
   res.json({ success: true });
 });
 
-// Website sends instruction
 app.post("/ai/instruction", (req, res) => {
   if (!state.permissionsGranted) {
-    return res.status(403).json({ error: "No permission" });
+    return res.status(403).json({ error: "Permission not granted" });
   }
 
   state.queue.push(req.body);
   res.json({ queued: true });
 });
 
-// Plugin polls for instructions
 app.get("/plugin/next", (req, res) => {
   const next = state.queue.shift() || null;
   res.json(next);
