@@ -1,9 +1,10 @@
-const chatDiv = document.getElementById("chat");
-const input = document.getElementById("input");
+const statusText = document.getElementById("status");
+const input = document.getElementById("userInput");
 const sendBtn = document.getElementById("sendBtn");
 
-let userId = null; // assigned by plugin connection
-let pluginConnected = false;
+input.disabled = true;
+sendBtn.disabled = true;
+
 
 function addMessage(text, sender){
     const msg = document.createElement("div");
@@ -51,3 +52,4 @@ window.pluginConnected = function(id){
     pluginConnected = true;
     addMessage("✅ Plugin connected successfully", "ai");
 }
+
